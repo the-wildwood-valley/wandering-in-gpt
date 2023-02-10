@@ -140,14 +140,14 @@ def whose_turn():
 
 if __name__ == "__main__":
     print("Welcome to the game!")
-    print("Please give the background of the dialogue")
+    print("Please give the background of the game")
     background(sys.stdin.readline(), omit=False)
-    print("Please give the number of the characters in the dialogue")
+    print("Please give the number of the characters in the game")
     num = int(sys.stdin.readline())
     assert num >= 2
     assert num < len(colors) - 1
-    print("Please give the name of the characters in the game (separated by spaces)")
-    names = sys.stdin.readline().strip().split(" ")
+    print("Please give the name of the characters in the game (separated by comma)")
+    names = sys.stdin.readline().strip().split(",")
     assert len(names) == num
     for name in names:
         roles.insert(0, name)
