@@ -36,7 +36,7 @@ and keep the continuity and logic of the dialogue.
 whose_turn_prompt = """
 Please analyze the following dialogue, pay attention to the analysis of the dialogue characters,
 clearly the dialogue stage, style, emotion, focus, state, summary, and predict the next stage of the dialogue,
-and give only one character name to continue the dialogue for making the dialogue more realistic.
+and give only one character name to continue the dialogue for making the dialogue more interesting.
 --------------------------
 characters:
 
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     num = int(sys.stdin.readline())
     assert num >= 2
     assert num < len(colors) - 1
-    print("Please give the name of the characters in the dialogue (separated by spaces)")
+    print("Please give the name of the characters in the game (separated by spaces)")
     names = sys.stdin.readline().strip().split(" ")
     assert len(names) == num
     for name in names:
