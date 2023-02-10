@@ -1,2 +1,3 @@
-# wandering-in-gpt
-Mike and Ada are wandering in GPT
+# Wandering in GPT
+
+A role-play game
