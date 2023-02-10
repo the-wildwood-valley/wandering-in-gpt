@@ -134,7 +134,7 @@ def role_think(text=None, role="Mike"):
 
 def whose_turn():
     text = get_response(whose_turn_prompt % (", ".join(roles), "\n".join(timeline)), 160)
-    turn = text.split("\n")[-1].strip().split()[0]
+    turn = text.split("\n")[-1].strip()
     return turn
 
 
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     names = sys.stdin.readline().strip().split(",")
     assert len(names) == num
     for name in names:
-        roles.insert(0, name)
+        roles.insert(0, name.strip())
     colors = colors[1:num+1] + colors[-1:]
     background("And %d people have a wonderful adventure, they are %s" % (num, ", ".join(names)))
     print("Please give the role of the only human player")
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     cprint(title, "light_grey", attrs=["bold"])
     print()
     for item in timeline:
-        tidy_print(item, colors[roles.index(item.split(":")[0]) % len(colors)])
+        tidy_print(item, colors[roles.index(item.split(":")[0].strip()) % len(colors)])
     background("And the story begins...")
 
     for line in sys.stdin:
