@@ -36,7 +36,7 @@ and keep the continuity and logic of the dialogue.
 whose_turn_prompt = """
 Please analyze the following dialogue, pay attention to the analysis of the dialogue characters,
 clearly the dialogue stage, style, emotion, focus, state, summary, and predict the next stage of the dialogue,
-and give only one character name to continue the dialogue for making the dialogue more interesting.
+and give only one character name to continue the dialogue for making the dialogue more imaginative and interesting.
 --------------------------
 characters:
 
