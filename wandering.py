@@ -166,6 +166,7 @@ def whose_turn():
 
 if __name__ == "__main__":
     print("Welcome to the game!")
+    print()
     print("Please give the genre of the game")
     genre = sys.stdin.readline().strip()
     print()
