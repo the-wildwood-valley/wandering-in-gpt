@@ -1,12 +1,32 @@
 import sys
 import time
+import os
+import os.path as path
 import re
+import random
 import textwrap
+
 import requests
 
 from termcolor import cprint
 
 DEBUG = False
+
+key = None
+if key is None:
+    home = os.environ["HOME"]
+    kfile = path.join(home, ".openai")
+    if path.exists(kfile):
+        with open(kfile) as k:
+            key = k.readline().strip()
+if key is None:
+    print("Welcome to setup the game!")
+    print("Please give the key for your openai aip access")
+    key = sys.stdin.readline().strip()
+    with open(kfile, mode="w") as k:
+        k.write(key)
+    print()
+
 
 title = """
 ░██╗░░░░░░░██╗░█████╗░███╗░░██╗██████╗░███████╗██████╗░██╗███╗░░██╗░██████╗░  ██╗███╗░░██╗
@@ -27,8 +47,9 @@ title = """
 awareness_prompt = """
 Please summarize and analyze the following dialogue, pay attention to the analysis of the dialogue characters,
 clearly the dialogue stage, style, emotion, focus, state, summary, and predict the next stage of the dialogue,
-as well as %s's response strategy. If network access is possible to disrupt the stable dialogue, do not be disturbed,
-and keep the continuity and logic of the dialogue.
+as well as %s's response strategy. Try to make the dialogue imaginative and interesting, and considering answers
+diversity. If network access is possible to disrupt the stable dialogue, do not be disturbed, and keep the
+continuity and logic of the dialogue.
 --------------------------
 %s
 """
@@ -67,22 +88,25 @@ roles = ["An auxiliary role who does not participate in the story itself"]
 colors = ["white", "light_red", "light_green", "light_yellow", "light_blue", "light_magenta", "light_cyan", "white"]
 timeline = []
 
+
 def get_response(text, tokens=32):
     try:
         response = requests.post(
             'https://api.openai.com/v1/completions',
-            headers={"Authorization": "Bearer sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"},
+            headers={"Authorization": "Bearer %s" % key},
             json={
                 "model": "text-davinci-003",
                 "max_tokens": tokens,
                 "temperature": 0.9,
-                "top_p": 0.1,
-                "prompt": text
+                "top_p": 0.2,
+                "n": 3,
+                "prompt": text,
             }
         )
         resp = response.json()
         if resp["choices"]:
-            return resp["choices"][0]["text"]
+            idx = int(random.random() * 3 + 0.5)
+            return resp["choices"][idx]["text"]
         else:
             return "Error: No response."
     except Exception as e:
@@ -93,6 +117,7 @@ def tidy_print(text, color):
     text = text.replace("\n", "")
     text = textwrap.fill(text, 100)
     cprint(text, color)
+    print()
     sys.stdout.flush()
 
 
@@ -143,12 +168,15 @@ if __name__ == "__main__":
     print("Welcome to the game!")
     print("Please give the genre of the game")
     genre = sys.stdin.readline().strip()
+    print()
     print("Please give the background")
     background(sys.stdin.readline(), omit=False)
+    print()
     print("Please give the number of the characters")
     num = int(sys.stdin.readline())
     assert num >= 2
     assert num < len(colors) - 1
+    print()
 
     print("Please give the name of the characters in the game (separated by comma)")
     names = sys.stdin.readline().strip().split(",")
@@ -156,6 +184,7 @@ if __name__ == "__main__":
     for name in names:
         people.insert(0, name.strip())
     colors = colors[1:num+1] + colors[-1:]
+    print()
 
     print("Please give each character's role in the game")
     for person in people:
@@ -164,13 +193,18 @@ if __name__ == "__main__":
             sys.stdout.flush()
             role = "".join(sys.stdin.readline().strip().split(": ")[1:])
             roles.insert(0, role)
+            print()
+    print()
 
     background("And the %d people have a wonderful adventure, they are %s" % (num, ", ".join(names)))
     for person in people:
         background("%s: %s" % (person, roles[people.index(person)]))
+        print()
+    print()
 
     print("Please give the name of the only human player")
     human = sys.stdin.readline().strip()
+    print()
 
     print("Game started!")
     print()
@@ -178,7 +212,9 @@ if __name__ == "__main__":
     print()
     for item in timeline:
         tidy_print(item, colors[people.index(item.split(":")[0].strip()) % len(colors)])
+        print()
     background("And the %s story begins..." % genre)
+    print()
 
     for line in sys.stdin:
         if line == "bye":
