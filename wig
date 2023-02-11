@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+import sys
+import time
+
+import wndrng.wandering as w
+
+
+if __name__ == "__main__":
+    w.hint("Welcome to the game!")
+    w.hint("Please give the genre of the game")
+    genre = sys.stdin.readline().strip()
+    w.hint("Please give the background")
+    w.background(sys.stdin.readline(), omit=False)
+    w.hint("Please give the number of the key characters")
+    num = int(sys.stdin.readline())
+    assert num >= 2
+    assert num < len(w.colors) - 1
+
+    w.hint("Please give the name of the key characters in the game (separated by comma)")
+    names = sys.stdin.readline().strip().split(",")
+    if len(names) == 1:
+        names = names[0].split("，")   # for chinese
+
+    assert len(names) == num
+    for name in names:
+        w.people.insert(0, name.strip())
+    colors = w.colors[1:num+1] + w.colors[-1:]
+
+    w.hint("Please give each character's role in the game")
+    for person in w.people:
+        if person != w.default("Narrator"):
+            print()
+            w.cprint("%s:" % person, "light_grey", attrs=["bold"])
+            sys.stdout.flush()
+            role = "".join(sys.stdin.readline().strip().split(": ")[1:])
+            w.roles.insert(0, role)
+
+    w.background("And the %d people have a wonderful adventure, they are %s" % (num, ", ".join(names)))
+    for person in w.people:
+        w.background("%s: %s" % (person, w.roles[w.people.index(person)]))
+
+    w.hint("Please give the name of the only human player")
+    human = sys.stdin.readline().strip()
+
+    w.hint("Game started!")
+    print()
+    w.cprint(w.title, "light_grey", attrs=["bold"])
+    print()
+    for item in w.timeline:
+        w.tidy_print(item, colors[w.people.index(item.split(":")[0].strip()) % len(colors)])
+        print()
+    w.background("And the %s story begins..." % genre)
+    print()
+
+    print()
+    w.cprint("%s:" % human, "light_grey", attrs=["bold"])
+    for line in sys.stdin:
+        if line == "bye":
+            exit(0)
+
+        w.role_talk(text=line, role=human)
+        for i in range(3):
+            role = w.whose_turn()
+            if role not in w.people or role == human:
+                break
+            context = w.role_think(role=role)
+            time.sleep(0.3)
+            w.role_talk(role=role)
+            time.sleep(0.3)
+
+        print()
+        w.cprint("%s:" % human, "light_grey", attrs=["bold"])
+        if len(timeline) > 24:
+            timeline = timeline[-24:]
+

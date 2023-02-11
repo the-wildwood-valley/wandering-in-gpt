@@ -1,5 +1,4 @@
 import sys
-import time
 import os
 import os.path as path
 import re
@@ -9,10 +8,10 @@ import textwrap
 import requests
 
 from termcolor import cprint
-from i18n.hints import hints
-from i18n.people import defaults
-from i18n.prompts import prompts
-from i18n.settings import settings
+from wndrng.i18n.hints import hints
+from wndrng.i18n.people import defaults
+from wndrng.i18n.prompts import prompts
+from wndrng.i18n.settings import settings
 
 
 DEBUG = False
@@ -159,72 +158,3 @@ def whose_turn():
     text = get_response(prompt("whose_turn") % (", ".join(people), "\n".join(timeline)), setting("whose_turn_tokens_length"))
     turn = text.split("\n")[-1].strip()
     return turn
-
-
-if __name__ == "__main__":
-    hint("Welcome to the game!")
-    hint("Please give the genre of the game")
-    genre = sys.stdin.readline().strip()
-    hint("Please give the background")
-    background(sys.stdin.readline(), omit=False)
-    hint("Please give the number of the key characters")
-    num = int(sys.stdin.readline())
-    assert num >= 2
-    assert num < len(colors) - 1
-
-    hint("Please give the name of the key characters in the game (separated by comma)")
-    names = sys.stdin.readline().strip().split(",")
-    if len(names) == 1:
-        names = names[0].split("，")   # for chinese
-
-    assert len(names) == num
-    for name in names:
-        people.insert(0, name.strip())
-    colors = colors[1:num+1] + colors[-1:]
-
-    hint("Please give each character's role in the game")
-    for person in people:
-        if person != default("Narrator"):
-            print()
-            cprint("%s:" % person, "light_grey", attrs=["bold"])
-            sys.stdout.flush()
-            role = "".join(sys.stdin.readline().strip().split(": ")[1:])
-            roles.insert(0, role)
-
-    background("And the %d people have a wonderful adventure, they are %s" % (num, ", ".join(names)))
-    for person in people:
-        background("%s: %s" % (person, roles[people.index(person)]))
-
-    hint("Please give the name of the only human player")
-    human = sys.stdin.readline().strip()
-
-    hint("Game started!")
-    print()
-    cprint(title, "light_grey", attrs=["bold"])
-    print()
-    for item in timeline:
-        tidy_print(item, colors[people.index(item.split(":")[0].strip()) % len(colors)])
-        print()
-    background("And the %s story begins..." % genre)
-    print()
-
-    print()
-    cprint("%s:" % human, "light_grey", attrs=["bold"])
-    for line in sys.stdin:
-        if line == "bye":
-            exit(0)
-
-        role_talk(text=line, role=human)
-        for i in range(3):
-            role = whose_turn()
-            if role not in people or role == human:
-                break
-            context = role_think(role=role)
-            time.sleep(0.3)
-            role_talk(role=role)
-            time.sleep(0.3)
-
-        print()
-        cprint("%s:" % human, "light_grey", attrs=["bold"])
-        if len(timeline) > 24:
-            timeline = timeline[-24:]

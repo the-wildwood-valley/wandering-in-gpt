@@ -1,5 +1,13 @@
 # Wandering in GPT: a role-play game
 
+## How to
+
+```bash
+brew install python3
+pip3 install wandering-in-gpt
+wig
+```
+
 ## A demo play in English
 
 Narrator: it was in 1938 when Ettore Majorana, an Italian theoretical physicist who worked on
