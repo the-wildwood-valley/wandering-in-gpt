@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="mountain",
+    name="wandering-in-gpt",
     version="0.0.0",
     author="Mingli Yuan",
     author_email="mingli.yuan@gmail.com",
