@@ -9,8 +9,41 @@ import textwrap
 import requests
 
 from termcolor import cprint
+from i18n.hints import hints
+from i18n.people import defaults
+from i18n.prompts import prompts
+from i18n.settings import settings
+
 
 DEBUG = False
+
+langs = ["en", "zh_S", "zh_T"]
+print("Please select your language:")
+print("1. English")
+print("2. 简体中文")
+print("3. 繁體中文")
+choice = int(sys.stdin.readline().strip()) - 1
+lang = langs[choice]
+
+
+def hint(text):
+    print()
+    ltext = hints[text][lang]
+    cprint(ltext, "white")
+    sys.stdout.flush()
+
+
+def prompt(key):
+    return prompts[key][lang]
+
+
+def default(key):
+    return defaults[key][lang]
+
+
+def setting(key):
+    return settings[key][lang]
+
 
 key = None
 if key is None:
@@ -20,8 +53,8 @@ if key is None:
         with open(kfile) as k:
             key = k.readline().strip()
 if key is None:
-    print("Welcome to setup the game!")
-    print("Please give the key for your openai aip access")
+    hint("Welcome to setup the game!")
+    hint("Please give the key for your openai aip access")
     key = sys.stdin.readline().strip()
     with open(kfile, mode="w") as k:
         k.write(key)
@@ -44,59 +77,23 @@ title = """
 ░╚═════╝░╚═╝░░░░░░░░╚═╝░░░
 """
 
-awareness_prompt = """
-Please summarize and analyze the following dialogue, pay attention to the analysis of the dialogue characters,
-clearly the dialogue stage, style, emotion, focus, state, summary, and predict the next stage of the dialogue,
-as well as %s's response strategy. Try to make the dialogue imaginative and interesting, and considering answers
-diversity. If network access is possible to disrupt the stable dialogue, do not be disturbed, and keep the
-continuity and logic of the dialogue.
---------------------------
-%s
-"""
-
-whose_turn_prompt = """
-Please analyze the following dialogue, pay attention to the analysis of the dialogue characters,
-clearly the dialogue stage, style, emotion, focus, state, summary, and predict the next stage of the dialogue,
-and give only one character name to continue the dialogue for making the dialogue more imaginative and interesting.
---------------------------
-characters:
-
-%s
-
-dialogue:
-
-%s
-
-the choice of the next dialogue character:
-"""
-
-chat_prompt = """
-background:
-
-%s
-
-dialogue:
-
-%s
-%s:
-"""
 
 context = ""
 genre = "science fiction"
-people = ["Narrator"]
-roles = ["An auxiliary role who does not participate in the story itself"]
+people = [default("Narrator")]
+roles = [default("An auxiliary role who does not participate in the story itself")]
 colors = ["light_grey", "light_red", "light_green", "light_yellow", "light_blue", "light_magenta", "light_cyan", "light_grey"]
 timeline = []
 
 
-def get_response(text, tokens=32):
+def get_response(text, max_tokens=32):
     try:
         response = requests.post(
             'https://api.openai.com/v1/completions',
             headers={"Authorization": "Bearer %s" % key},
             json={
                 "model": "text-davinci-003",
-                "max_tokens": tokens,
+                "max_tokens": max_tokens,
                 "temperature": 0.9,
                 "top_p": 0.2,
                 "n": 3,
@@ -113,12 +110,6 @@ def get_response(text, tokens=32):
         return "Error: %s" % e
 
 
-def hint(text):
-    print()
-    cprint(text, "white")
-    sys.stdout.flush()
-
-
 def tidy_print(text, color):
     text = text.replace("\n", "")
     text = textwrap.fill(text, 100)
@@ -130,19 +121,19 @@ def tidy_print(text, color):
 def background(text=None, omit=True):
     global context
     if text is None:
-        context = role_think(None, role="Narrator")
-        role_talk(None, role="Narrator")
+        context = role_think(None, role=default("Narrator"))
+        role_talk(None, role=default("Narrator"))
     else:
         context = text
         if not omit:
-            role_talk(text, role="Narrator")
-        role_talk(None, role="Narrator")
+            role_talk(text, role=default("Narrator"))
+        role_talk(None, role=default("Narrator"))
 
 
 def role_talk(text=None, role="Mike"):
     if text is None:
-        text = chat_prompt % (context, "\n".join(timeline), role)
-        text = get_response(text, tokens=64).strip().split("\n")[0]
+        text = prompt("chat") % (context, "\n".join(timeline), role)
+        text = get_response(text, max_tokens=setting("talk_tokens_length")).strip().split("\n")[0]
     if text == "" or text.startswith("Error: "):
         text = "..."
     text = re.sub(r"^\w+:\s", "", text)
@@ -154,7 +145,7 @@ def role_talk(text=None, role="Mike"):
 
 def role_think(text=None, role="Mike"):
     if text is None:
-        text = get_response(awareness_prompt % (role, "\n".join(timeline)), 160)
+        text = get_response(prompt("awareness") % (role, "\n".join(timeline)), setting("awareness_tokens_length"))
     if text == "" or text.startswith("Error: "):
         text = "..."
     text = re.sub(r"^\w+:\s", "", text)
@@ -165,7 +156,7 @@ def role_think(text=None, role="Mike"):
 
 
 def whose_turn():
-    text = get_response(whose_turn_prompt % (", ".join(people), "\n".join(timeline)), 160)
+    text = get_response(prompt("whose_turn") % (", ".join(people), "\n".join(timeline)), setting("whose_turn_tokens_length"))
     turn = text.split("\n")[-1].strip()
     return turn
 
@@ -176,12 +167,12 @@ if __name__ == "__main__":
     genre = sys.stdin.readline().strip()
     hint("Please give the background")
     background(sys.stdin.readline(), omit=False)
-    hint("Please give the number of the characters")
+    hint("Please give the number of the key characters")
     num = int(sys.stdin.readline())
     assert num >= 2
     assert num < len(colors) - 1
 
-    hint("Please give the name of the characters in the game (separated by comma)")
+    hint("Please give the name of the key characters in the game (separated by comma)")
     names = sys.stdin.readline().strip().split(",")
     if len(names) == 1:
         names = names[0].split("，")   # for chinese
@@ -193,8 +184,9 @@ if __name__ == "__main__":
 
     hint("Please give each character's role in the game")
     for person in people:
-        if person != "Narrator":
-            hint("%s:" % person)
+        if person != default("Narrator"):
+            print()
+            cprint("%s:" % person, "light_grey", attrs=["bold"])
             sys.stdout.flush()
             role = "".join(sys.stdin.readline().strip().split(": ")[1:])
             roles.insert(0, role)
@@ -216,7 +208,8 @@ if __name__ == "__main__":
     background("And the %s story begins..." % genre)
     print()
 
-    hint("%s:" % human)
+    print()
+    cprint("%s:" % human, "light_grey", attrs=["bold"])
     for line in sys.stdin:
         if line == "bye":
             exit(0)
@@ -231,6 +224,7 @@ if __name__ == "__main__":
             role_talk(role=role)
             time.sleep(0.3)
 
-        hint("%s:" % human)
+        print()
+        cprint("%s:" % human, "light_grey", attrs=["bold"])
         if len(timeline) > 24:
             timeline = timeline[-24:]
