@@ -183,6 +183,9 @@ if __name__ == "__main__":
 
     hint("Please give the name of the characters in the game (separated by comma)")
     names = sys.stdin.readline().strip().split(",")
+    if len(names) == 1:
+        names = names[0].split("，")   # for chinese
+
     assert len(names) == num
     for name in names:
         people.insert(0, name.strip())
