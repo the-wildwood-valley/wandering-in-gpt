@@ -34,8 +34,9 @@ prompts = {
     "whose_turn": depadding({
         "en": """
         Please analyze the following dialogue, pay attention to the analysis of the dialogue characters,
-        clearly the dialogue stage, style, emotion, focus, state, summary, and predict the next stage of the dialogue,
-        and give only one character name to continue the dialogue for making the dialogue more imaginative and interesting.
+        clearly the dialogue stage, style, emotion, focus, state, summary, and predict the next stage of the dialogue.
+        Please do not output these analysis and prediction, and only give one character's name who will continue the
+        dialogue. The choice should make the dialogue more imaginative, interesting and maybe surprise.
         --------------------------
         characters:
 
@@ -48,8 +49,9 @@ prompts = {
         the choice of the next dialogue character:
         """,
         "zh_S": """
-        请总结分析以下对话，注意分析对话的人物，弄清楚对话的阶段、风格、情绪、焦点、状态，给出总结，并预测下一阶段的对话，
-        给出下一个继续对话者的名字，让后继的对话更富想象力和趣味性。
+        请总结分析以下对话，注意分析对话的人物，弄清楚对话的阶段、风格、情绪、焦点、状态，给出总结，并预测下一阶段的对话。
+        但是请不要写下分析与预测，而是只给出一个继续对话者的名字。这个对话者的选择可以同预测不一样，让后继的对话变得更富想象力和趣味性，
+        更加吸引潜在的有知识和品位的读者。
         --------------------------
         人物:
 
@@ -62,8 +64,9 @@ prompts = {
         下一个继续对话者的名字:
         """,
         "zh_T": """
-        請總結分析以下對話，註意分析對話的人物，弄清楚對話的階段、風格、情緒、焦點、狀態，給出總結，並預測下一階段的對話，
-        給出下一個繼續對話者的名字，讓後繼的對話更富想象力和趣味性。
+        請總結分析以下對話，註意分析對話的人物，弄清楚對話的階段、風格、情緒、焦點、狀態，給出總結，並預測下一階段的對話。
+        但是請不要寫下分析與預測，而是只給出一個繼續對話者的名字。這個對話者的選擇可以同預測不一樣，讓後繼的對話變得更富想象力和趣味性，
+        更加吸引潛在的有知識和品位的讀者。
         --------------------------
         人物:
 

@@ -1,66 +1,4 @@
-import sys
-import os
-import os.path as path
-import re
-import random
-import textwrap
-
-import requests
-
-from termcolor import cprint
-from wndrng.i18n.hints import hints
-from wndrng.i18n.people import defaults
-from wndrng.i18n.prompts import prompts
-from wndrng.i18n.settings import settings
-
-
-DEBUG = False
-
-langs = ["en", "zh_S", "zh_T"]
-print("Please select your language:")
-print("1. English")
-print("2. 简体中文")
-print("3. 繁體中文")
-choice = int(sys.stdin.readline().strip()) - 1
-lang = langs[choice]
-
-
-def hint(text):
-    print()
-    ltext = hints[text][lang]
-    cprint(ltext, "white")
-    sys.stdout.flush()
-
-
-def prompt(key):
-    return prompts[key][lang]
-
-
-def default(key):
-    return defaults[key][lang]
-
-
-def setting(key):
-    return settings[key][lang]
-
-
-key = None
-if key is None:
-    home = os.environ["HOME"]
-    kfile = path.join(home, ".openai")
-    if path.exists(kfile):
-        with open(kfile) as k:
-            key = k.readline().strip()
-if key is None:
-    hint("Welcome to setup the game!")
-    hint("Please give the key for your openai aip access")
-    key = sys.stdin.readline().strip()
-    with open(kfile, mode="w") as k:
-        k.write(key)
-    print()
-
-
-title = """
+"""
 ░██╗░░░░░░░██╗░█████╗░███╗░░██╗██████╗░███████╗██████╗░██╗███╗░░██╗░██████╗░  ██╗███╗░░██╗
 ░██║░░██╗░░██║██╔══██╗████╗░██║██╔══██╗██╔════╝██╔══██╗██║████╗░██║██╔════╝░  ██║████╗░██║
 ░╚██╗████╗██╔╝███████║██╔██╗██║██║░░██║█████╗░░██████╔╝██║██╔██╗██║██║░░██╗░  ██║██╔██╗██║
@@ -76,85 +14,143 @@ title = """
 ░╚═════╝░╚═╝░░░░░░░░╚═╝░░░
 """
 
+import re
+import random
+import sys
 
-context = ""
-genre = "science fiction"
-people = [default("Narrator")]
-roles = [default("An auxiliary role who does not participate in the story itself")]
-colors = ["light_grey", "light_red", "light_green", "light_yellow", "light_blue", "light_magenta", "light_cyan", "light_grey"]
-timeline = []
+import wndrng.api as api
+import wndrng.i18n as i18n
+import wndrng.term as term
 
+DEBUG = False
 
-def get_response(text, max_tokens=32):
-    try:
-        response = requests.post(
-            'https://api.openai.com/v1/completions',
-            headers={"Authorization": "Bearer %s" % key},
-            json={
-                "model": "text-davinci-003",
-                "max_tokens": max_tokens,
-                "temperature": 0.9,
-                "top_p": 0.2,
-                "n": 3,
-                "prompt": text,
-            }
-        )
-        resp = response.json()
-        if resp["choices"]:
-            idx = int(random.random() * 3 + 0.5)
-            return resp["choices"][idx]["text"]
-        else:
-            return "Error: No response."
-    except Exception as e:
-        return "Error: %s" % e
+context = None
+genre = None
+people = None
+roles = None
+human = None
+step = None
+timeline = None
 
 
-def tidy_print(text, color):
-    text = text.replace("\n", "")
-    text = textwrap.fill(text, 100)
-    print()
-    cprint(text, color)
-    sys.stdout.flush()
+def init():
+    global context, genre, people, roles, human, step, timeline
+    context = ""
+    genre = "science fiction"
+    people = [i18n.default("Narrator")]
+    roles = [i18n.default("An auxiliary role who does not participate in the story itself")]
+    human = None
+    step = 0
+    timeline = [
+    ]
 
 
-def background(text=None, omit=True):
+def timeline_append(entry):
+    global step, timeline
+    timeline.append(entry)
+    step = step + 1
+    if len(timeline) > 24:
+        timeline = timeline[-24:]
+
+
+def background(text=None, omit=True, quotation_check=True):
     global context
     if text is None:
-        context = role_think(None, role=default("Narrator"))
-        role_talk(None, role=default("Narrator"))
+        context = role_think(None, role=i18n.default("Narrator"))
+        role_talk(None, role=i18n.default("Narrator"))
     else:
         context = text
         if not omit:
-            role_talk(text, role=default("Narrator"))
-        role_talk(None, role=default("Narrator"))
+            role_talk(text, role=i18n.default("Narrator"), quotation_check=quotation_check)
+            if random.random() > 0.2:
+                if step > 5:
+                    role = whose_turn()
+                    if role and role != i18n.default("Narrator"):
+                        role_talk(None, role=role)
+                else:
+                    role = i18n.default("Narrator")
+                    role_talk(None, role=role)
 
 
-def role_talk(text=None, role="Mike"):
+def role_talk(text, role, quotation_check=True):
+    assert(role is not None)
+
+    if text is None or text == "":
+        text = i18n.prompt("chat") % (context, "\n".join(timeline), role)
+        text = api.get_response(text, max_tokens=i18n.setting("talk_tokens_length")).strip().split("\n")[0]
+        if text == "" or text.startswith("Error: "):
+            text = "..."
+
+    if not quotation_check or not handle_quotation(text):
+        text = "%s: %s" % (role, text)
+        timeline_append(text)
+        term.tidy_print(text, term.colors[people.index(role) % len(term.colors)])
+        return text
+
+    return text
+
+
+def role_think(text=None, role=None):
+    assert(role is not None)
+
     if text is None:
-        text = prompt("chat") % (context, "\n".join(timeline), role)
-        text = get_response(text, max_tokens=setting("talk_tokens_length")).strip().split("\n")[0]
-    if text == "" or text.startswith("Error: "):
-        text = "..."
-    text = re.sub(r"^\w+:\s", "", text)
-    content = "%s: %s" % (role, text.replace("\n", ""))
-    timeline.append(content)
-    tidy_print(content, colors[people.index(role) % len(colors)])
-    return content
+        text = api.get_response(i18n.prompt("awareness") % (role, "\n".join(timeline)),
+                                max_tokens=i18n.setting("awareness_tokens_length"))
+        if text == "" or text.startswith("Error: "):
+            text = "..."
 
-
-def role_think(text=None, role="Mike"):
-    if text is None:
-        text = get_response(prompt("awareness") % (role, "\n".join(timeline)), setting("awareness_tokens_length"))
-    if text == "" or text.startswith("Error: "):
-        text = "..."
     text = re.sub(r"^\w+:\s", "", text)
     thought = "%s: %s" % (role, text.replace("\n", ""))
     if DEBUG:
-        tidy_print(thought, "light_grey")
+        term.tidy_print(thought, "red")
+
     return thought
 
 
 def whose_turn():
-    text = get_response(prompt("whose_turn") % (", ".join(people), "\n".join(timeline)), setting("whose_turn_tokens_length"))
+    whose_turn_prompt = i18n.prompt("whose_turn") % (", ".join(people), "\n".join(timeline))
+    text = api.get_response(whose_turn_prompt, max_tokens=i18n.setting("whose_turn_tokens_length"))
     turn = text.split("\n")[-1].strip()
-    return turn
+    if turn in people:
+        return turn
+    else:
+        return None
+
+
+def match_person(text, matcher, seperator, ender):
+    if matcher in text:
+        for person in people:
+            if text[:len(person)] == person:
+                segments = text.split(seperator)
+                background(text=segments[0], omit=False, quotation_check=False)
+                segments = segments[1].split(ender)
+                role_talk(text=segments[0].strip(" \"“”"), role=person, quotation_check=False)
+                if len(segments) > 1 and segments[1]:
+                    background(text=segments[1], omit=False, quotation_check=False)
+                return True
+    return False
+
+
+def handle_quotation(text):
+    return match_person(text, "：“", "：“", "”") or match_person(text, ": “", ": “", "”") or \
+        match_person(text, ": \"", ": \"", "\"") or match_person(text, ": ", ": ", "~")
+
+
+def game_loop():
+    global context, timeline
+    print()
+    term.cprint("%s:" % human, "light_grey", attrs=["bold"])
+    for line in sys.stdin:
+        if line == "bye":
+            exit(0)
+
+        role_talk(text=line, role=human)
+        for i in range(3):
+            role = whose_turn()
+            if role not in people or role == human:
+                break
+            context = role_think(role=role)
+            role_talk(None, role=role)
+
+        print()
+        term.cprint("%s:" % human, "light_grey", attrs=["bold"])

@@ -12,8 +12,10 @@ wig
 
 Narrator: it was in 1938 when Ettore Majorana, an Italian theoretical physicist who worked on
 neutrino masses, had purchased a ticket to travel by ship from Palermo to Naples, he disappeared
-under mysterious circumstances.Alice Wagner, an investigative journalist want to make the event
+under mysterious circumstances. Alice Wagner, an investigative journalist wants to make the event
 clear. So she set her journey to Italy...
+
+it was in 1938 when Ettore Majorana, an Italian theoretical physicist who worked on neutrino masses, had purchased a ticket to travel by ship from Palermo to Naples, he disappeared under mysterious circumstances. Alice Wagner, an investigative journalist wants to make the event clear. So she set her journey to Italy...
 
 Narrator: Alice arrived in Palermo and started her investigation. She went to the port and asked the
 people there if they had seen Ettore Majorana.
@@ -48,7 +50,7 @@ Tim Gray: ...
 
 ## A demo play in Chinese
 
-旁白: 颜回风尘仆仆从鲁国来到镐京，求见于老子
+旁白: 颜回辞别老师孔子，从鲁国来到镐京，一路风尘仆仆，到达后没有休息就直接求见老子，想问他世间的大道理。
 
 旁白: 颜回到了老子的门前，他拜倒在地，恭敬地说：“您好，老子大师，我是颜回，来自鲁国，请您指点迷津！”
 

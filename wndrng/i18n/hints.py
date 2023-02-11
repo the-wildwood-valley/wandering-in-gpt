@@ -4,7 +4,7 @@ hints = {
         "zh_S": "欢迎进入游戏设置",
         "zh_T": "歡迎進入遊戲設置",
     },
-    "Please give the key for your openai aip access": {
+    "Please give the key for your OpenAI API access": {
         "en": "Please give the key for your OpenAI API access",
         "zh_S": "请给出你访问 OpenAI API 的 Token",
         "zh_T": "請給出你訪問 OpenAI API 的 Token",
