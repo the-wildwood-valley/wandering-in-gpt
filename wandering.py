@@ -213,6 +213,7 @@ if __name__ == "__main__":
     background("And the %s story begins..." % genre)
     print()
 
+    hint("%s:" % human)
     for line in sys.stdin:
         if line == "bye":
             exit(0)
