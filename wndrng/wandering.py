@@ -17,20 +17,27 @@
 import re
 import random
 import sys
+import os
 
 import wndrng.api as api
 import wndrng.i18n as i18n
 import wndrng.term as term
 
-DEBUG = False
 
+DEBUG = False
+try:
+    DEBUG = os.environ["DEBUG"] == "true"
+except Exception:
+    pass
+
+
+step = 0
 context = None
 genre = None
-people = None
-roles = None
 human = None
-step = None
-timeline = None
+people = []
+roles = []
+timeline = []
 
 
 def init():
