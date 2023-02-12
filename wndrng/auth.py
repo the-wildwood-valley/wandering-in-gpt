@@ -21,5 +21,3 @@ def setup_key():
         key = sys.stdin.readline().strip()
         with open(k_file, mode="w") as k:
             k.write(key)
-
-
