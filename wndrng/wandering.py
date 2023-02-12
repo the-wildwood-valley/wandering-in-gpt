@@ -141,6 +141,7 @@ def game_loop():
     print()
     term.cprint("%s:" % human, "light_grey", attrs=["bold"])
     for line in sys.stdin:
+        line = line.strip()
         if line == "bye":
             exit(0)
 

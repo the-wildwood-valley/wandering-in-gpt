@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="wandering-in-gpt",
-    version="0.0.1",
+    version="0.0.2",
     author="Mingli Yuan",
     author_email="mingli.yuan@gmail.com",
     description="Wandering in GPT is a role-play game",
