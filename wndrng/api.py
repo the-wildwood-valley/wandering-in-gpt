@@ -13,17 +13,17 @@ def get_response(text, max_tokens=32):
             json={
                 "model": "text-davinci-003",
                 "max_tokens": max_tokens,
-                "temperature": 0.9,
-                "top_p": 0.2,
+                "temperature": 0.8,
+                "top_p": 0.1,
                 "n": 3,
                 "prompt": text,
             }
         )
         resp = response.json()
-        if resp["choices"]:
-            idx = int(random.random() * 3 + 0.5)
+        if "choices" in resp:
+            idx = int(random.random() * len(resp["choices"]))
             return resp["choices"][idx]["text"]
         else:
-            return "Error: No response."
+            return "Error： %s" % resp
     except Exception as e:
         return "Error: %s" % e
